@@ -1,0 +1,19 @@
+Recon Report for demo.testfire.net
+==================================================
+
+Alive Hosts:
+https://demo.testfire.net
+
+Endpoints:
+https://demo.testfire.net/admin
+
+Findings:
+Admin Panel → https://demo.testfire.net/admin
+
+Risk Summary:
+High Risk:
+https://demo.testfire.net/admin
+
+Medium Risk:
+
+Low Risk:
