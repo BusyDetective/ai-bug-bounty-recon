@@ -141,12 +141,15 @@
 
 <div class="card">
     <h2>📊 Risk Distribution</h2>
-    <canvas id="riskChart"
-    data-high="{{ risk.high|length }}"
-    data-medium="{{ risk.medium|length }}"
-    data-low="{{ risk.low|length }}"
-    width="200" height="200">
-</canvas>
+
+    <div style="max-width: 400px; margin: auto; height: 300px;">
+        <canvas id="riskChart"
+        data-high="{{ risk.high|length }}"
+        data-medium="{{ risk.medium|length }}"
+        data-low="{{ risk.low|length }}">
+        </canvas>
+    </div>
+
 </div>
 
 <script>
@@ -172,6 +175,8 @@
             }]
         },
         options: {
+            responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     labels: {

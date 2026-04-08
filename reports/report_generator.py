@@ -1,5 +1,8 @@
+import os
+
 def generate_report(domain, alive_hosts, endpoints, findings, risk):
-    filename = f"{domain}_report.txt"
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    filename = os.path.join(base_dir, f"{domain}_report.txt")
 
     with open(filename, "w") as f:
         f.write(f"Recon Report for {domain}\n")

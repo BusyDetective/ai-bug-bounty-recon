@@ -43,14 +43,12 @@ def download_report(domain):
     safe_domain = domain.replace(".", "_")
     filename = f"{safe_domain}_report.txt"
 
-    # Get full path to project root
-    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    file_path = os.path.join(base_dir, filename)
+    file_path = os.path.join("reports", filename)
 
     if os.path.exists(file_path):
         return send_file(file_path, as_attachment=True)
     else:
-        return f"File not found: {file_path}"
+        return f"Report not found: {file_path}"
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
