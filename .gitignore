@@ -3,5 +3,5 @@ __pycache__/
 *.pyc
 *.pdf
 *.txt
-chart.png
-.DS_Store
+*.log
+reports/

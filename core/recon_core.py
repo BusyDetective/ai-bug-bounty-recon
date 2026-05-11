@@ -578,9 +578,6 @@ def run_recon(domain):
 
     print(f"[+] Smart findings: {len(smart_findings)}")
 
-    for f in smart_findings:
-        findings.append(f)
-
     # 🔥 OLD TESTER (keep optional)
     vulns_basic = test_vulnerabilities(param_data)
 
@@ -710,9 +707,12 @@ def run_recon(domain):
     print(f"[+] Validated Findings: {len(validated_findings)}")
     
     exploits = []
+
     for f in validated_findings:
         exp = generate_exploit(f)
-        exploits.append(exp)
+
+        if exp is not None:
+            exploits.append(exp)
 
     validated_exploits = validate_all(exploits)
 

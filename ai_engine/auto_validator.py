@@ -2,6 +2,9 @@ import requests
 from urllib.parse import urlparse
 
 def validate_exploit(exploit):
+    if not exploit:
+        return None
+
     result = {
         "type": exploit["type"],
         "url": exploit["poc"],
@@ -60,6 +63,9 @@ def validate_all(exploits):
         futures = [executor.submit(validate_exploit, exp) for exp in exploits]
 
         for f in futures:
-            results.append(f.result())
+            result = f.result()
+
+        if result:
+            results.append(result)
 
     return results
