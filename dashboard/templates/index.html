@@ -20,12 +20,18 @@
 
         button {
             padding: 12px 20px;
-            background: #22c55e;
+            background: linear-gradient(135deg, #22c55e, #38bdf8);
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
+            color: white;
+            font-weight: bold;
         }
-
+        
+        button:hover {
+            box-shadow: 0 0 10px #22c55e;
+        }
+        
         h1 {
             color: #38bdf8;
         }
@@ -76,19 +82,16 @@ function startScan() {
         "🚀 Finalizing results..."
     ];
 
-    let progress = [10, 25, 45, 65, 85, 100];
-
-    let i = 0;
+    let progress = 0;
+    let bar = document.getElementById("progressBar");
 
     let interval = setInterval(() => {
-        if (i < messages.length) {
-            document.getElementById("loadingText").innerText = messages[i];
-            document.getElementById("progressBar").style.width = progress[i] + "%";
-            i++;
-        } else {
-            clearInterval(interval);
-        }
-    }, 800);
+        progress += Math.random() * 10;
+
+        if (progress >= 95) progress = 95;
+
+        bar.style.width = progress + "%";
+    }, 700);
 }
 </script>
 

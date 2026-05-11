@@ -1,8 +1,4 @@
-from core.subdomain_enum import enumerate_subdomains
-from core.alive_check import check_alive
-from core.endpoint_finder import find_endpoints
-from ai_engine.vuln_patterns import detect_vuln_patterns
-from ai_engine.risk_scoring import calculate_risk
+from core.recon_core import run_recon
 from ai_engine.payload_suggestions import suggest_payloads
 from reports.report_generator import generate_report
 
@@ -10,31 +6,45 @@ def main():
 
     domain = input("Enter target domain: ")
 
-    subdomains = enumerate_subdomains(domain)
+    print("\n[+] Running FULL AI Recon Engine...\n")
 
-    print("\nDiscovered Subdomains:\n")
+    results = run_recon(domain)
+
+    # Extract results
+    subdomains = results.get("subdomains", [])
+    alive_hosts = results.get("live_hosts", [])
+    endpoints = results.get("important_urls", [])
+    findings = results.get("findings", [])
+    risk = results.get("risk", {})
+
+    # PRINT RESULTS
+    print("\n===== RESULTS =====")
+
+    print("\n[Subdomains]")
     for sub in subdomains:
         print(sub)
 
-    # NEW STEP
-    alive_hosts = check_alive(subdomains)
-
-    print("\nAlive Hosts:\n")
+    print("\n[Alive Hosts]")
     for host in alive_hosts:
         print(host["url"])
 
-    endpoints = find_endpoints(alive_hosts)
-
-    print("\nDiscovered Endpoints:\n")
-    for ep in endpoints:
+    print("\n[Endpoints]")
+    for ep in endpoints[:50]:   # limit output
         print(ep)
-    
-    findings = detect_vuln_patterns(endpoints)
 
-    risk = calculate_risk(endpoints, alive_hosts)
+    print("\n[Findings]")
+    for f in findings:
+        if isinstance(f, dict):
+            print(f"[{f.get('type')}] {f.get('url')}")
+        else:
+            print(f)
 
+    # Suggest payloads (still useful)
+    from ai_engine.payload_suggestions import suggest_payloads
     suggest_payloads(findings)
 
+    # Generate report
+    from reports.report_generator import generate_report
     generate_report(domain, alive_hosts, endpoints, findings, risk)
         
 if __name__ == "__main__":

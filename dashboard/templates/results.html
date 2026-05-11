@@ -38,6 +38,58 @@
         li {
             margin-bottom: 5px;
         }
+
+        .badge {
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .high {
+            color: #ef4444;
+        }
+
+        .medium {
+            color: #f59e0b;
+        }
+
+        .low {
+            color: #22c55e;
+        }
+
+        /* Glass effect */
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 15px #38bdf8;
+        }
+
+        .high {
+            border-left: 5px solid #ef4444;
+        }
+
+        .medium {
+            border-left: 5px solid #f59e0b;
+        }
+
+        .low {
+            border-left: 5px solid #22c55e;
+        }
+
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
 </head>
@@ -45,11 +97,13 @@
 
 <a href="/" style="color:#22c55e;">⬅ Back to Scan</a>
 
+<h1>🛡️ AI Recon Dashboard</h1>
+<p style="color:#94a3b8;">Advanced Bug Bounty Reconnaissance Engine</p>
 <h1>🎯 Results for {{ domain }}</h1>
 
 <br>
 <a href="/download/{{ domain }}">
-    <button style="background:#38bdf8;">📥 Download Report</button>
+    <button style="background:#38bdf8;">📄 Download PDF Report</button>
 </a>
 
 <div class="card">
@@ -57,15 +111,24 @@
     <p>🌐 Subdomains: {{ subdomains|length }}</p>
     <p>🟢 Alive Hosts: {{ alive_hosts|length }}</p>
     <p>📂 Endpoints: {{ endpoints|length }}</p>
-    <p class="high">🔥 High Risk: {{ risk.high|length }}</p>
+
+    <p class="high">🔥 High: {{ risk.high|length }}</p>
+    <p class="medium">⚠️ Medium: {{ risk.medium|length }}</p>
+    <p class="low">✅ Low: {{ risk.low|length }}</p>
 </div>
+
+<p>🚨 Vulnerabilities Detected: {{ findings|length }}</p>
 
 <div class="card">
     <h2>🌐 Subdomains</h2>
     <ul>
-        {% for sub in subdomains %}
-            <li>{{ sub }}</li>
-        {% endfor %}
+        {% if subdomains %}
+            {% for sub in subdomains %}
+                <li>{{ sub }}</li>
+            {% endfor %}
+        {% else %}
+            <li>No subdomains found</li>
+        {% endif %}
     </ul>
 </div>
 
@@ -77,9 +140,56 @@
                 <a href="{{ host.url }}" target="_blank" style="color:#38bdf8;">
                     {{ host.url }}
                 </a>
+                <span style="margin-left:10px; color:#22c55e;">
+                    ({{ host.status }})
+                </span>
             </li>
         {% endfor %}
     </ul>
+</div>
+
+<div class="card">
+    <h2>🎯 Attack Priority Targets</h2>
+
+    {% if priorities %}
+        {% for p in priorities[:10] %}
+
+            <div class="card 
+                {% if p.priority == 'HIGH' %}high
+                {% elif p.priority == 'MEDIUM' %}medium
+                {% else %}low{% endif %}
+            ">
+
+                <h3>
+                    {% if p.priority == "HIGH" %}
+                        🔥 HIGH VALUE TARGET
+                    {% elif p.priority == "MEDIUM" %}
+                        ⚠️ MEDIUM VALUE
+                    {% else %}
+                        ✅ LOW VALUE
+                    {% endif %}
+                </h3>
+
+                <p>
+                    🔗 <a href="{{ p.url }}" target="_blank" style="word-break:break-all;">
+                        {{ p.url }}
+                    </a>
+                </p>
+
+                <p>Score: {{ p.score }}</p>
+
+                <ul>
+                    {% for r in p.reasons %}
+                        <li>👉 {{ r }}</li>
+                    {% endfor %}
+                </ul>
+
+            </div>
+
+        {% endfor %}
+    {% else %}
+        <p>No priority targets</p>
+    {% endif %}
 </div>
 
 <div class="card">
@@ -88,8 +198,11 @@
     {% if endpoints %}
         {% for ep in endpoints %}
             <li>
-                <a href="{{ ep }}" target="_blank" style="color:#38bdf8;">
-                    {{ ep }}
+                <span style="color:#22c55e; font-weight:bold;">
+                    [{{ ep.tags | join(', ') }}]
+                </span>
+                <a href="{{ ep.url }}" target="_blank" style="color:#38bdf8;">
+                    {{ ep.url }}
                 </a>
             </li>
         {% endfor %}
@@ -100,17 +213,227 @@
 </div>
 
 <div class="card">
-    <h2>⚠️ Findings</h2>
-    <ul>
-        {% if findings %}
-            {% for vuln, url in findings %}
-                <li>{{ vuln }} → {{ url }}</li>
-            {% endfor %}
-        {% else %}
-            <li>No findings</li>
-        {% endif %}
-    </ul>
+    <h2>🧠 AI Intelligence Analysis</h2>
+
+    {% if analysis_results %}
+        {% for result in analysis_results[:10] %}
+
+            <div class="card" style="border-left: 5px solid #38bdf8;">
+
+                <h3>
+                🔗 
+                {% if result.url and result.url != "" %}
+                    {{ result.url }}
+                {% else %}
+                    <span style="color:#f59e0b;">Invalid / Filtered Endpoint</span>
+                {% endif %}
+                </h3>
+                <p>
+                <strong>Risk Score:</strong> 
+                {{ result.risk_score if result.risk_score is not none else 0 }}
+                </p>
+
+                <ul>
+                    {% for f in result.findings %}
+                        <li class="
+                            {% if f.severity == 'HIGH' %}high
+                            {% elif f.severity == 'MEDIUM' %}medium
+                            {% else %}low
+                            {% endif %}
+                        ">
+                            {{ f.type }} ({{ f.severity }}) → {{ f.reason }}
+                        </li>
+                    {% endfor %}
+                </ul>
+
+            </div>
+
+        {% endfor %}
+    {% else %}
+        <p>No intelligence findings</p>
+    {% endif %}
 </div>
+
+<div class="card">
+    <h2>⚠️ Findings</h2>
+
+    {% if findings %}
+        {% for v in findings %}
+
+            {% if v is mapping %}
+                {% set vuln = v.type %}
+                {% set url = v.url %}
+            {% else %}
+                {% set vuln = v[0] %}
+                {% set url = v[1] %}
+            {% endif %}
+
+            <div class="card" style="border-left: 5px solid #ef4444;">
+
+                {% if v is mapping %}
+                    {% set severity = v.severity %}
+                {% else %}
+                    {% set severity = "Low" %}
+                {% endif %}
+
+                {% if severity == "High" or severity == "Critical" %}
+                    <h3 class="high">🔥 HIGH - {{ vuln }}</h3>
+                {% elif severity == "Medium" %}
+                    <h3 class="medium">⚠️ MEDIUM - {{ vuln }}</h3>
+                {% else %}
+                    <h3 class="low">✅ LOW - {{ vuln }}</h3>
+                {% endif %}
+
+                <p>
+                    🔗 
+                    <a href="{{ url }}" target="_blank" style="color:#38bdf8;">
+                        {{ url }}
+                    </a>
+                </p>
+                <p>
+                    🧪 <a href="{{ url }}" target="_blank" style="color:#22c55e;">
+                        Test Exploit
+                    </a>
+                </p>
+                {% if v.confidence > 50 %}
+                    <span style="color:#22c55e;">✔ Verified Exploit</span>
+                {% else %}
+                    <span style="color:#f59e0b;">⚠ Not fully verified</span>
+                {% endif %}
+
+            </div>
+
+        {% endfor %}
+    {% else %}
+        <p>No findings</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>🧪 Verified Exploits</h2>
+
+    {% if verified %}
+        {% for v in verified %}
+
+            <div class="card 
+                {% if v.status == 'CONFIRMED' %}high
+                {% elif v.status == 'POSSIBLE' %}medium
+                {% else %}low{% endif %}
+            ">
+
+                <h3>
+                    {% if v.status == "CONFIRMED" %}
+                        🔥 CONFIRMED
+                    {% elif v.status == "POSSIBLE" %}
+                        ⚠️ POSSIBLE
+                    {% else %}
+                        ✅ FALSE POSITIVE
+                    {% endif %}
+                    - {{ v.type }}
+                </h3>
+
+                <p>
+                    🔗 <a href="{{ v.url }}" target="_blank" style="color:#38bdf8;">
+                        {{ v.url }}
+                    </a>
+                </p>
+
+                <p>Confidence: {{ v.confidence }}%</p>
+
+            </div>
+
+        {% endfor %}
+    {% else %}
+        <p>No verified exploits</p>
+    {% endif %}
+</div>
+
+<p>💣 Total Exploits Generated: {{ exploits|length }}</p>
+
+<div class="card">
+    <h2>💣 Exploit Proof of Concept</h2>
+
+    {% if exploits %}
+        {% for exploit in exploits if exploit.payload != "Unknown" %}
+
+            <div class="card 
+                {% if 'redirect' in exploit.type|lower %}high
+                {% elif 'xss' in exploit.type|lower %}high
+                {% elif 'sqli' in exploit.type|lower %}high
+                {% elif 'idor' in exploit.type|lower %}medium
+                {% else %}low{% endif %}
+            ">
+
+                <h3>🔥 {{ exploit.type }}</h3>
+
+                <p>
+                    🔗 <a href="{{ exploit.poc }}" target="_blank" style="word-break: break-all; color:#38bdf8;">
+                        {{ exploit.poc }}
+                    </a>
+                </p>
+
+                <p>
+                <strong>Payload:</strong> 
+                <code style="color:#22c55e; background:#0f172a; padding:5px; border-radius:5px;">
+                    {{ exploit.payload }}
+                </code>
+                </p>
+
+                <p><strong>Steps:</strong></p>
+                <ul style="color:#94a3b8;">
+                    {% for step in exploit.steps %}
+                        <li>👉 {{ step }}</li>
+                    {% endfor %}
+                </ul>
+
+            </div>
+
+        {% endfor %}
+    {% else %}
+        <p>No exploits generated</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>🤖 Auto Validation Results</h2>
+
+    {% if validated_exploits %}
+        {% for v in validated_exploits %}
+
+            <div class="card 
+                {% if v.status == 'CONFIRMED' %}high
+                {% elif v.status == 'POSSIBLE' %}medium
+                {% else %}low{% endif %}
+            ">
+
+                <h3>
+                    {% if v.status == "CONFIRMED" %}
+                        🔥 CONFIRMED
+                    {% elif v.status == "POSSIBLE" %}
+                        ⚠️ POSSIBLE
+                    {% else %}
+                        ❌ FAILED
+                    {% endif %}
+                    - {{ v.type }}
+                </h3>
+
+                <p>
+                    🔗 <a href="{{ v.url }}" target="_blank" style="word-break:break-all;">
+                        {{ v.url }}
+                    </a>
+                </p>
+
+                <p>Confidence: {{ v.confidence }}%</p>
+
+            </div>
+
+        {% endfor %}
+    {% else %}
+        <p>No validation results</p>
+    {% endif %}
+</div>
+
+<p>🚨 Potential Vulnerabilities Detected: {{ findings|length }}</p>
 
 <div class="card">
     <h2 class="high">🔥 High Risk</h2>

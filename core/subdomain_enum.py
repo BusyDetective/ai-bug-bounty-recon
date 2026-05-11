@@ -6,7 +6,8 @@ def get_subdomains_crtsh(domain):
     subdomains = set()
 
     try:
-        response = requests.get(url, timeout=10)
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(url, timeout=10, headers=headers)
         data = response.json()
 
         for entry in data:
@@ -32,7 +33,7 @@ def get_subdomains_crtsh(domain):
     except Exception as e:
         print(f"[ERROR] crt.sh lookup failed: {e}")
 
-    return sorted(list(subdomains))
+    return sorted([s.replace("\x1b[92m", "").replace("\x1b[0m", "") for s in subdomains])
 
 def enumerate_subdomains(domain):
     print(f"\n[+] Enumerating subdomains for {domain}...\n")

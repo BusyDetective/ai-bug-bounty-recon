@@ -1,3 +1,16 @@
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+
+def inject(url, param, payload):
+    if not param:
+        return url + f"?test={payload}"
+
+    parsed = urlparse(url)
+    qs = parse_qs(parsed.query)
+    qs[param] = [payload]
+    new_query = urlencode(qs, doseq=True)
+    return urlunparse(parsed._replace(query=new_query))
+
+
 def suggest_payloads(findings):
     print("\n[+] Generating payload suggestions...\n")
 
@@ -8,28 +21,35 @@ def suggest_payloads(findings):
         "Open Redirect": ["https://evil.com"]
     }
 
-    for vuln_type, url in findings:
+    for f in findings:
+        vuln_type = f.get("type", "")
+        url = f.get("url", "")
+        param = f.get("param")
         print(f"\nTarget: {url}")
 
         if "SQLi" in vuln_type or "IDOR" in vuln_type:
             print("Try SQLi:")
             for p in payloads["SQLi"]:
-                print(f"  {p}")
+                attack_url = inject(url, param, p)
+                print(f"  {attack_url}")
 
         elif "XSS" in vuln_type:
             print("Try XSS:")
             for p in payloads["XSS"]:
-                print(f"  {p}")
+                attack_url = inject(url, param, p)
+                print(f"  {attack_url}")
 
         elif "Path Traversal" in vuln_type:
             print("Try:")
             for p in payloads["Path Traversal"]:
-                print(f"  {p}")
+                attack_url = inject(url, param, p)
+                print(f"  {attack_url}")
 
         elif "Redirect" in vuln_type:
             print("Try:")
             for p in payloads["Open Redirect"]:
-                print(f"  {p}")
+                attack_url = inject(url, param, p)
+                print(f"  {attack_url}")
 
         elif "admin" in url.lower():
             print("Try:")
