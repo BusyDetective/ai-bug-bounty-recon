@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, redirect, session
 import sys
 import os
 os.environ["CLI_MODE"] = "0"
@@ -6,27 +6,50 @@ import matplotlib.pyplot as plt
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from core.recon_core import run_recon
 from ai_engine.risk_scoring import calculate_risk
+from database import (
+    init_db,
+    save_scan,
+    get_scans,
+    create_user,
+    authenticate_user
+)
 
 app = Flask(__name__)
+app.secret_key = "supersecretkey"
+init_db()
 
 @app.route('/')
 def index():
+
+    if "user" not in session:
+        return redirect("/login")
+
     return render_template('index.html')
 
 
 @app.route('/scan', methods=['POST'])
 def scan():
+
+    if "user" not in session:
+        return redirect("/login")
+
     domain = request.form.get('domain')
 
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
     results = run_recon(domain)
+    save_scan(
+        domain,
+        results["risk"],
+        results["findings"]
+    )
 
     subdomains = results.get("subdomains", [])
     alive_hosts = results.get("live_hosts", [])
@@ -237,6 +260,10 @@ def scan():
 
 @app.route('/download/<domain>')
 def download_report(domain):
+
+    if "user" not in session:
+        return redirect("/login")
+
     safe_domain = (
         domain
         .replace("https://", "")
@@ -252,6 +279,67 @@ def download_report(domain):
         return send_file(file_path, as_attachment=True)
     else:
         return f"File not found: {file_path}"
+
+@app.route("/history")
+def history():
+
+    if "user" not in session:
+        return redirect("/login")
+
+    scans = get_scans()
+
+    return render_template(
+        "history.html",
+        scans=scans
+    )
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+
+    if request.method == "POST":
+
+        username = request.form["username"]
+
+        password = generate_password_hash(
+            request.form["password"]
+        )
+
+        success = create_user(username, password)
+
+        if not success:
+            return "User already exists"
+
+        return redirect("/login")
+
+    return render_template("register.html")
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+
+    if request.method == "POST":
+
+        username = request.form["username"]
+
+        password = request.form["password"]
+
+        user = authenticate_user(username)
+
+        if user and check_password_hash(user[2], password):
+
+            session["user"] = username
+
+            return redirect("/")
+
+        return "Invalid credentials"
+
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+
+    session.clear()
+
+    return redirect("/login")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

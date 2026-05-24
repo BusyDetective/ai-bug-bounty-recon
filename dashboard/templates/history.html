@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scan History</title>
+
+    <style>
+        body{
+            background:#0f172a;
+            color:white;
+            font-family:Arial;
+            padding:20px;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+        }
+
+        th, td{
+            border:1px solid #334155;
+            padding:12px;
+        }
+
+        th{
+            background:#1e293b;
+        }
+
+        tr:nth-child(even){
+            background:#111827;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>📜 Scan History</h1>
+
+<table>
+
+<tr>
+    <th>ID</th>
+    <th>Domain</th>
+    <th>Date</th>
+    <th>Findings</th>
+    <th>High</th>
+    <th>Medium</th>
+    <th>Low</th>
+</tr>
+
+{% for scan in scans %}
+
+<tr>
+    <td>{{ scan[0] }}</td>
+    <td>{{ scan[1] }}</td>
+    <td>{{ scan[2] }}</td>
+    <td>{{ scan[3] }}</td>
+    <td>{{ scan[4] }}</td>
+    <td>{{ scan[5] }}</td>
+    <td>{{ scan[6] }}</td>
+</tr>
+
+<th>Status</th>
+<td>
+    {% if scan[7] == "Completed" %}
+        <span style="color:#22c55e;">✅ Completed</span>
+    {% else %}
+        <span style="color:#f59e0b;">⏳ Running</span>
+    {% endif %}
+</td>
+
+{% endfor %}
+
+</table>
+
+</body>
+</html>
