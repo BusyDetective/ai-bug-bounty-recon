@@ -5,3 +5,13 @@ __pycache__/
 *.txt
 *.log
 reports/
+# Generated scan artifacts
+screenshots/
+reports/
+*.pdf
+
+# Generated attack surface visualization
+static/attack_surface.html
+
+# Temporary scan files
+core/live_hosts.txt
